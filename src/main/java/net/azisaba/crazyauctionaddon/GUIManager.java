@@ -38,8 +38,14 @@ public class GUIManager {
     }
 
     public void openSetGUI(Player p, ItemStack item) {
+        // すでに出品不可なら画面3から
+        if (manager.isBlocked(item)) {
+            openBlockGUI(p, item);
+            return;
+        }
+
         Inventory inv = Bukkit.createInventory(null, 9, "CAA 設定 - 出品設定");
-        inv.setItem(4, item.clone());
+        inv.setItem(4, item);
 
         ItemStack emerald = new ItemStack(Material.EMERALD_BLOCK);
         ItemMeta em = emerald.getItemMeta();
@@ -83,4 +89,6 @@ public class GUIManager {
 
         p.openInventory(inv);
     }
+
+
 }
