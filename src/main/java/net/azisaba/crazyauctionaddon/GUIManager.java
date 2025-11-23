@@ -7,6 +7,8 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.util.List;
+
 public class GUIManager {
 
     private final CrazyAuctionAddon plugin;
@@ -17,20 +19,15 @@ public class GUIManager {
         this.manager = manager;
     }
 
-    // =========================================================
-    // 画面1（設定画面）
-    // =========================================================
     public void openConfigGUI(Player p) {
         Inventory inv = Bukkit.createInventory(null, 9, "CAA 設定");
 
-        // slot4 → アイテムをドロップする場所
         ItemStack gray = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
         ItemMeta gm = gray.getItemMeta();
         gm.setDisplayName("§7ここにアイテムをドロップ");
         gray.setItemMeta(gm);
         inv.setItem(4, gray);
 
-        // slot8 → 装飾（無効）
         ItemStack stone = new ItemStack(Material.STONE);
         ItemMeta sm = stone.getItemMeta();
         sm.setDisplayName("§7");
@@ -40,13 +37,9 @@ public class GUIManager {
         p.openInventory(inv);
     }
 
-    // =========================================================
-    // 画面2（出品可能設定）
-    // =========================================================
     public void openSetGUI(Player p, ItemStack item) {
         Inventory inv = Bukkit.createInventory(null, 9, "CAA 設定 - 出品設定");
-
-        inv.setItem(4, item);
+        inv.setItem(4, item.clone());
 
         ItemStack emerald = new ItemStack(Material.EMERALD_BLOCK);
         ItemMeta em = emerald.getItemMeta();
@@ -57,13 +50,9 @@ public class GUIManager {
         p.openInventory(inv);
     }
 
-    // =========================================================
-    // 画面3（出品不可設定）
-    // =========================================================
     public void openBlockGUI(Player p, ItemStack item) {
         Inventory inv = Bukkit.createInventory(null, 9, "CAA 設定 - 出品不可");
-
-        inv.setItem(4, item);
+        inv.setItem(4, item.clone());
 
         ItemStack red = new ItemStack(Material.REDSTONE_BLOCK);
         ItemMeta rm = red.getItemMeta();
@@ -74,15 +63,9 @@ public class GUIManager {
         p.openInventory(inv);
     }
 
-    // =========================================================
-    // 出品不可リスト（ページ付き）
-    // =========================================================
     public void openNoSellList(Player p, int page) {
-        // blockedItems が Set<String>（Material 名）を返す前提で実装
-        // 1ページあたりの表示数（54スロット全体を使う場合）
+        List<ItemStack> items = manager.getBlockedItems();
         int perPage = 54;
-        java.util.List<String> items = new java.util.ArrayList<>(manager.getBlockedItems()); // Set -> List
-
         int maxPage = (items.size() + perPage - 1) / perPage;
         if (maxPage <= 0) maxPage = 1;
         if (page < 1) page = 1;
@@ -92,27 +75,11 @@ public class GUIManager {
 
         int start = (page - 1) * perPage;
         int end = Math.min(start + perPage, items.size());
-
         int slotIndex = 0;
         for (int i = start; i < end; i++) {
-            String matName = items.get(i);
-            Material mat = Material.getMaterial(matName);
-            ItemStack is;
-            if (mat != null) {
-                is = new ItemStack(mat);
-            } else {
-                // Material が見つからない場合は名前表示用の紙などに置き換える（安全策）
-                is = new ItemStack(Material.PAPER);
-                org.bukkit.inventory.meta.ItemMeta im = is.getItemMeta();
-                im.setDisplayName(matName);
-                is.setItemMeta(im);
-            }
-            inv.setItem(slotIndex, is);
+            inv.setItem(slotIndex, items.get(i).clone());
             slotIndex++;
         }
-
-        // ページ移動用のボタン（任意）
-        // 例: 左上に戻る/次へを置きたい場合はここで setItem する
 
         p.openInventory(inv);
     }

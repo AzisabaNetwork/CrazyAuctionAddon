@@ -31,6 +31,9 @@ public class CrazyAuctionAddon extends JavaPlugin {
         );
 
         getLogger().info("CrazyAuctionAddon Enabled");
+
+        this.getCommand("caa").setExecutor(new CAACommand(this, guiManager, blockedItemsManager));
+        this.getCommand("caa").setTabCompleter(new CAATabCompleter());
     }
 
     @Override

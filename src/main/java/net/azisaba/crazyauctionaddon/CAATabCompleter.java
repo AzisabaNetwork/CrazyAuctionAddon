@@ -14,9 +14,7 @@ public class CAATabCompleter implements TabCompleter {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-
         List<String> result = new ArrayList<>();
-
         if (args.length == 1) {
             String current = args[0].toLowerCase();
             for (String sub : subCommands) {
@@ -25,7 +23,6 @@ public class CAATabCompleter implements TabCompleter {
                 }
             }
         }
-
         return result;
     }
 }

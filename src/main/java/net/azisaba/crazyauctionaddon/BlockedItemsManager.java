@@ -1,64 +1,56 @@
 package net.azisaba.crazyauctionaddon;
 
-import org.bukkit.Material;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public class BlockedItemsManager {
 
-    private final CrazyAuctionAddon plugin;
-    private final Set<String> blockedItems = new HashSet<>();
+    private final JavaPlugin plugin;
+    private final List<ItemStack> blockedItems;
 
-    public BlockedItemsManager(CrazyAuctionAddon plugin) {
+    public BlockedItemsManager(JavaPlugin plugin) {
         this.plugin = plugin;
+        this.blockedItems = new ArrayList<>();
         load();
     }
 
-    public void load() {
-        blockedItems.clear();
-
-        FileConfiguration config = plugin.getConfig();
-        if (config.contains("blocked-items")) {
-            blockedItems.addAll(config.getStringList("blocked-items"));
-        }
-    }
-
-    public void save() {
-        FileConfiguration config = plugin.getConfig();
-        List<String> saveList = new ArrayList<>(blockedItems);
-        config.set("blocked-items", saveList);
-        plugin.saveConfig();
-    }
-
-    /** アイテムがブロック対象か調べる */
-    public boolean isBlocked(ItemStack item) {
-        if (item == null) return false;
-
-        Material type = item.getType();
-        return blockedItems.contains(type.name());
-    }
-
-    /** アイテムをブロックリストに追加 */
+    // ブロックリストに追加
     public void add(ItemStack item) {
-        if (item == null) return;
-        blockedItems.add(item.getType().name());
+        blockedItems.add(item.clone());
         save();
     }
 
-    /** ブロックリストから削除 */
+    // ブロックリストから削除
     public void remove(ItemStack item) {
-        if (item == null) return;
-        blockedItems.remove(item.getType().name());
+        blockedItems.removeIf(i -> i.isSimilar(item));
         save();
     }
 
-    /** 全リスト取得 */
-    public Set<String> getBlockedItems() {
-        return blockedItems;
+    // ブロックリストを返す
+    public List<ItemStack> getBlockedItems() {
+        return new ArrayList<>(blockedItems);
+    }
+
+    // アイテムがブロックリストにあるか
+    public boolean isBlocked(ItemStack item) {
+        for (ItemStack i : blockedItems) {
+            if (i.isSimilar(item)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // 設定から読み込む
+    public void load() {
+        // ここに config.yml などから読み込む処理を追加
+    }
+
+    // 設定に保存する
+    public void save() {
+        // ここに config.yml などに保存する処理を追加
     }
 }
