@@ -101,13 +101,13 @@ public class BlockedItemsManager {
     }
 
     public void add(ItemStack item) {
-        blockedItems.removeIf(bi -> isSameItem(bi, item)); // 一度消してから追加
+        blockedItems.removeIf(bi -> isSameItemIgnoreAmount(bi, item)); // 一度消してから追加
         blockedItems.add(item.clone());
         save();
     }
 
     public void remove(ItemStack item) {
-        blockedItems.removeIf(bi -> isSameItem(bi, item));
+        blockedItems.removeIf(bi -> isSameItemIgnoreAmount(bi, item));
         save();
     }
 
@@ -118,11 +118,39 @@ public class BlockedItemsManager {
         return false;
     }
 
+    // AH sell 判定用（スタック数無視）
+    public boolean isBlockedIgnoreAmount(ItemStack item) {
+        for (ItemStack bi : blockedItems) {
+            if (isSameItemIgnoreAmount(bi, item)) return true;
+        }
+        return false;
+    }
+
     public List<ItemStack> getBlockedItems() {
         return new ArrayList<>(blockedItems);
     }
 
     private boolean isSameItem(ItemStack a, ItemStack b) {
+        if (a == null || b == null) return false;
+        if (a.getType() != b.getType()) return false;
+        if (a.getAmount() != b.getAmount()) return false;
+
+        ItemMeta am = a.getItemMeta();
+        ItemMeta bm = b.getItemMeta();
+
+        if (am == null && bm != null) return false;
+        if (bm == null && am != null) return false;
+        if (am != null && bm != null) {
+            if (!Objects.equals(am.getDisplayName(), bm.getDisplayName())) return false;
+            if (!Objects.equals(am.getLore(), bm.getLore())) return false;
+            if (!am.getEnchants().equals(bm.getEnchants())) return false;
+        }
+
+        return true;
+    }
+
+    // スタック数を無視して比較
+    private boolean isSameItemIgnoreAmount(ItemStack a, ItemStack b) {
         if (a == null || b == null) return false;
         if (a.getType() != b.getType()) return false;
 

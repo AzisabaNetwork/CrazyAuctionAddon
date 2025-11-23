@@ -19,6 +19,7 @@ public class GUIManager {
         this.manager = manager;
     }
 
+    // 画面1: CAA 設定
     public void openConfigGUI(Player p) {
         Inventory inv = Bukkit.createInventory(null, 9, "CAA 設定");
 
@@ -28,47 +29,38 @@ public class GUIManager {
         gray.setItemMeta(gm);
         inv.setItem(4, gray);
 
-        ItemStack stone = new ItemStack(Material.STONE);
-        ItemMeta sm = stone.getItemMeta();
-        sm.setDisplayName("§7");
-        stone.setItemMeta(sm);
-        inv.setItem(8, stone);
-
         p.openInventory(inv);
     }
 
+    // 画面2: 出品可能設定
     public void openSetGUI(Player p, ItemStack item) {
-        // すでに出品不可なら画面3から
-        if (manager.isBlocked(item)) {
-            openBlockGUI(p, item);
-            return;
-        }
+        Inventory inv = Bukkit.createInventory(null, 9, "CAA 設定 - 出品可能");
+        inv.setItem(4, item.clone());
 
-        Inventory inv = Bukkit.createInventory(null, 9, "CAA 設定 - 出品設定");
-        inv.setItem(4, item);
-
-        ItemStack emerald = new ItemStack(Material.EMERALD_BLOCK);
-        ItemMeta em = emerald.getItemMeta();
-        em.setDisplayName("§a出品可能");
-        emerald.setItemMeta(em);
-        inv.setItem(8, emerald);
+        ItemStack green = new ItemStack(Material.EMERALD_BLOCK);
+        ItemMeta gm = green.getItemMeta();
+        gm.setDisplayName("§c出品不可にする");
+        green.setItemMeta(gm);
+        inv.setItem(8, green);
 
         p.openInventory(inv);
     }
 
+    // 画面3: 出品不可設定
     public void openBlockGUI(Player p, ItemStack item) {
         Inventory inv = Bukkit.createInventory(null, 9, "CAA 設定 - 出品不可");
         inv.setItem(4, item.clone());
 
         ItemStack red = new ItemStack(Material.REDSTONE_BLOCK);
         ItemMeta rm = red.getItemMeta();
-        rm.setDisplayName("§c出品不可");
+        rm.setDisplayName("§a出品可能に戻す");
         red.setItemMeta(rm);
         inv.setItem(8, red);
 
         p.openInventory(inv);
     }
 
+    // 出品不可リスト
     public void openNoSellList(Player p, int page) {
         List<ItemStack> items = manager.getBlockedItems();
         int perPage = 54;
@@ -89,5 +81,4 @@ public class GUIManager {
 
         p.openInventory(inv);
     }
-
 }

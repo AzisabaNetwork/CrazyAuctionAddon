@@ -1,11 +1,13 @@
 package net.azisaba.crazyauctionaddon;
 
+import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class CrazyAuctionAddon extends JavaPlugin {
 
     private BlockedItemsManager blockedItemsManager;
     private GUIManager guiManager;
+    private InventoryListener inventoryListener;
 
     @Override
     public void onEnable() {
@@ -20,24 +22,26 @@ public class CrazyAuctionAddon extends JavaPlugin {
         guiManager = new GUIManager(this, blockedItemsManager);
 
         // コマンド登録
-        getCommand("caa").setExecutor(
-                new CAACommand(this, guiManager, blockedItemsManager)
-        );
+        getCommand("caa").setExecutor(new CAACommand(this, guiManager, blockedItemsManager));
+        getCommand("caa").setTabCompleter(new CAATabCompleter());
 
         // Listener 登録
-        getServer().getPluginManager().registerEvents(
-                new InventoryListener(this, guiManager, blockedItemsManager),
-                this
-        );
+        inventoryListener = new InventoryListener(this, guiManager, blockedItemsManager);
+        getServer().getPluginManager().registerEvents(inventoryListener, this);
 
         getLogger().info("CrazyAuctionAddon Enabled");
-
-        this.getCommand("caa").setExecutor(new CAACommand(this, guiManager, blockedItemsManager));
-        this.getCommand("caa").setTabCompleter(new CAATabCompleter());
     }
 
     @Override
     public void onDisable() {
-        blockedItemsManager.save(); // ← config へ保存
+        // データ保存
+        if (blockedItemsManager != null) blockedItemsManager.save();
+
+        // リスナー解除
+        if (inventoryListener != null) {
+            HandlerList.unregisterAll(inventoryListener);
+        }
+
+        getLogger().info("CrazyAuctionAddon Disabled");
     }
 }

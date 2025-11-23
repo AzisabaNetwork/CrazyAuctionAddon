@@ -34,9 +34,9 @@ public class InventoryListener implements Listener {
         ItemStack clicked = e.getCurrentItem();
         if (clicked == null) clicked = new ItemStack(Material.AIR);
 
-        // =======================================================
+        // ===========================
         // 画面1：CAA 設定
-        // =======================================================
+        // ===========================
         if (title.equals("CAA 設定")) {
             if (raw < topSize) e.setCancelled(true);
 
@@ -47,12 +47,8 @@ public class InventoryListener implements Listener {
                     e.getInventory().setItem(4, put);
                     p.setItemOnCursor(null);
 
-                    // 画面移行前にアイテムを返却
-                    p.getInventory().addItem(put.clone());
-                    e.getInventory().setItem(4, null);
-
                     // 既に出品不可なら画面3、そうでなければ画面2
-                    if (blockedItemsManager.isBlocked(put)) {
+                    if (blockedItemsManager.isBlockedIgnoreAmount(put)) {
                         guiManager.openBlockGUI(p, put);
                     } else {
                         guiManager.openSetGUI(p, put);
@@ -63,10 +59,10 @@ public class InventoryListener implements Listener {
             return;
         }
 
-        // =======================================================
+        // ===========================
         // 画面2：出品可能設定
-        // =======================================================
-        if (title.startsWith("CAA 設定 - 出品設定")) {
+        // ===========================
+        if (title.startsWith("CAA 設定 - 出品可能")) {
             if (raw < topSize) e.setCancelled(true);
 
             if (raw == 4) {
@@ -75,18 +71,21 @@ public class InventoryListener implements Listener {
                 return;
             }
 
+            // 8番：緑ブロック → 出品不可に設定
             if (raw == 8 && clicked.getType() == Material.EMERALD_BLOCK) {
-                ItemStack item = e.getInventory().getItem(4).clone();
-                blockedItemsManager.remove(item); // 出品可能に設定
-                guiManager.openBlockGUI(p, item); // 画面3へ移行
-                p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
+                ItemStack item = e.getInventory().getItem(4);
+                if (item != null) {
+                    blockedItemsManager.add(item.clone()); // 出品不可に設定
+                    guiManager.openBlockGUI(p, item.clone()); // 画面3へ
+                    p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
+                }
                 return;
             }
         }
 
-        // =======================================================
+        // ===========================
         // 画面3：出品不可設定
-        // =======================================================
+        // ===========================
         if (title.startsWith("CAA 設定 - 出品不可")) {
             if (raw < topSize) e.setCancelled(true);
 
@@ -96,18 +95,21 @@ public class InventoryListener implements Listener {
                 return;
             }
 
+            // 8番：赤ブロック → 出品可能に戻す
             if (raw == 8 && clicked.getType() == Material.REDSTONE_BLOCK) {
-                ItemStack item = e.getInventory().getItem(4).clone();
-                blockedItemsManager.add(item); // 出品不可に設定
-                guiManager.openSetGUI(p, item); // 画面2へ移行
-                p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
+                ItemStack item = e.getInventory().getItem(4);
+                if (item != null) {
+                    blockedItemsManager.remove(item.clone()); // 出品可能に戻す
+                    guiManager.openSetGUI(p, item.clone()); // 画面2へ
+                    p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
+                }
                 return;
             }
         }
 
-        // =======================================================
+        // ===========================
         // 出品不可リスト（完全操作禁止）
-        // =======================================================
+        // ===========================
         if (title.startsWith("出品不可リスト - ページ")) {
             if (raw < topSize) e.setCancelled(true);
         }
@@ -128,19 +130,24 @@ public class InventoryListener implements Listener {
         }
     }
 
+    // ===========================
+    // /ah sell, /auction sell, /auctionhouse sell 対応
+    // ===========================
     @EventHandler
     public void onPlayerCommand(PlayerCommandPreprocessEvent e) {
         Player p = e.getPlayer();
         String msg = e.getMessage().toLowerCase();
 
-        if (msg.startsWith("/ah sell")) {
-            for (ItemStack item : p.getInventory().getContents()) {
-                if (item != null && blockedItemsManager.isBlocked(item)) {
-                    e.setCancelled(true);
-                    p.sendMessage("§cこのアイテムを持っている間は /ah sell を使用できません。");
-                    return;
-                }
+        if (msg.startsWith("/ah sell") || msg.startsWith("/auction sell") || msg.startsWith("/auctionhouse sell")) {
+            ItemStack main = p.getInventory().getItemInMainHand();
+            ItemStack off = p.getInventory().getItemInOffHand();
+
+            if ((main != null && main.getType() != Material.AIR && blockedItemsManager.isBlockedIgnoreAmount(main)) ||
+                    (off != null && off.getType() != Material.AIR && blockedItemsManager.isBlockedIgnoreAmount(off))) {
+                e.setCancelled(true);
+                p.sendMessage("§c手に持っているアイテムは出品できません");
             }
         }
     }
+
 }
