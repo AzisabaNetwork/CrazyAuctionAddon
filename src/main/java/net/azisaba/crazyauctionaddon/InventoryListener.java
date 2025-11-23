@@ -6,7 +6,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.inventory.ItemStack;
@@ -48,7 +47,11 @@ public class InventoryListener implements Listener {
                     e.getInventory().setItem(4, put);
                     p.setItemOnCursor(null);
 
-                    // 既に出品不可に設定されている場合は画面3へ
+                    // 画面移行前にアイテムを返却
+                    p.getInventory().addItem(put.clone());
+                    e.getInventory().setItem(4, null);
+
+                    // 既に出品不可なら画面3、そうでなければ画面2
                     if (blockedItemsManager.isBlocked(put)) {
                         guiManager.openBlockGUI(p, put);
                     } else {
@@ -74,8 +77,8 @@ public class InventoryListener implements Listener {
 
             if (raw == 8 && clicked.getType() == Material.EMERALD_BLOCK) {
                 ItemStack item = e.getInventory().getItem(4).clone();
-                blockedItemsManager.add(item); // 永続化も内部で行う
-                guiManager.openBlockGUI(p, item);
+                blockedItemsManager.remove(item); // 出品可能に設定
+                guiManager.openBlockGUI(p, item); // 画面3へ移行
                 p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
                 return;
             }
@@ -95,8 +98,8 @@ public class InventoryListener implements Listener {
 
             if (raw == 8 && clicked.getType() == Material.REDSTONE_BLOCK) {
                 ItemStack item = e.getInventory().getItem(4).clone();
-                blockedItemsManager.remove(item); // 永続化も内部で行う
-                guiManager.openSetGUI(p, item);
+                blockedItemsManager.add(item); // 出品不可に設定
+                guiManager.openSetGUI(p, item); // 画面2へ移行
                 p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
                 return;
             }
@@ -137,27 +140,6 @@ public class InventoryListener implements Listener {
                     p.sendMessage("§cこのアイテムを持っている間は /ah sell を使用できません。");
                     return;
                 }
-            }
-        }
-    }
-
-    // =======================================================
-    // GUIを閉じたときのみアイテム返却
-    // =======================================================
-    @EventHandler
-    public void onInventoryClose(InventoryCloseEvent e) {
-        if (!(e.getPlayer() instanceof Player)) return;
-        Player p = (Player) e.getPlayer();
-        String title = e.getView().getTitle();
-
-        if (title.equals("CAA 設定") ||
-                title.startsWith("CAA 設定 - 出品設定") ||
-                title.startsWith("CAA 設定 - 出品不可")) {
-
-            ItemStack item = e.getInventory().getItem(4);
-            if (item != null && item.getType() != Material.AIR && item.getType() != Material.GRAY_STAINED_GLASS_PANE) {
-                p.getInventory().addItem(item); // ガラスは返さない
-                e.getInventory().setItem(4, null);
             }
         }
     }

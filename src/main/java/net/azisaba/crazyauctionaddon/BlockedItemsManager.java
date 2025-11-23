@@ -15,7 +15,7 @@ public class BlockedItemsManager {
 
     private final CrazyAuctionAddon plugin;
     private final File file;
-    private final FileConfiguration config;
+    private FileConfiguration config;
     private final List<ItemStack> blockedItems = new ArrayList<>();
 
     public BlockedItemsManager(CrazyAuctionAddon plugin) {
@@ -23,6 +23,7 @@ public class BlockedItemsManager {
         this.file = new File(plugin.getDataFolder(), "blocked-items.yml");
 
         if (!file.exists()) {
+            plugin.getDataFolder().mkdirs();
             try {
                 file.createNewFile();
             } catch (IOException e) {
@@ -30,6 +31,11 @@ public class BlockedItemsManager {
             }
         }
 
+        this.config = YamlConfiguration.loadConfiguration(file);
+        load();
+    }
+
+    public void reloadConfig() {
         this.config = YamlConfiguration.loadConfiguration(file);
         load();
     }
@@ -95,10 +101,9 @@ public class BlockedItemsManager {
     }
 
     public void add(ItemStack item) {
-        if (!isBlocked(item)) {
-            blockedItems.add(item.clone());
-            save();
-        }
+        blockedItems.removeIf(bi -> isSameItem(bi, item)); // 一度消してから追加
+        blockedItems.add(item.clone());
+        save();
     }
 
     public void remove(ItemStack item) {
