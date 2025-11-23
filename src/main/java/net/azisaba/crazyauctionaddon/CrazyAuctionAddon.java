@@ -4,43 +4,37 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class CrazyAuctionAddon extends JavaPlugin {
 
-    private static CrazyAuctionAddon instance;
     private BlockedItemsManager blockedItemsManager;
     private GUIManager guiManager;
 
     @Override
     public void onEnable() {
-        instance = this;
 
-        try {
-            saveDefaultConfig();
-        } catch (IllegalArgumentException ignored) {
-            getLogger().warning("config.yml が見つかりません。デフォルト設定は読み込まれません。");
-        }
+        // Configロード/作成
+        saveDefaultConfig();
 
+        // マネージャー類の初期化（順番重要）
         blockedItemsManager = new BlockedItemsManager(this);
-        blockedItemsManager.load();
+        blockedItemsManager.load(); // ← config から読み込み
 
         guiManager = new GUIManager(this, blockedItemsManager);
 
-        getCommand("caa").setExecutor(new CAACommand(this, guiManager, blockedItemsManager));
-        getCommand("caa").setTabCompleter(new CAATabCompleter());
+        // コマンド登録
+        getCommand("caa").setExecutor(
+                new CAACommand(this, guiManager, blockedItemsManager)
+        );
 
+        // Listener 登録
         getServer().getPluginManager().registerEvents(
-                new InventoryListener(this, guiManager, blockedItemsManager), this);
+                new InventoryListener(this, guiManager, blockedItemsManager),
+                this
+        );
 
-        getServer().getPluginManager().registerEvents(
-                new SellBlockerListener(blockedItemsManager), this);
-
-        getLogger().info("CrazyAuctionAddon enabled");
+        getLogger().info("CrazyAuctionAddon Enabled");
     }
 
     @Override
     public void onDisable() {
-        blockedItemsManager.save();
-    }
-
-    public static CrazyAuctionAddon getInstance() {
-        return instance;
+        blockedItemsManager.save(); // ← config へ保存
     }
 }
