@@ -27,6 +27,7 @@ public class InventoryListener implements Listener {
 
         String title = e.getView().getTitle();
         int raw = e.getRawSlot();
+        int topSize = e.getView().getTopInventory().getSize();
 
         ItemStack clicked = e.getCurrentItem();
         if (clicked == null) clicked = new ItemStack(Material.AIR);
@@ -35,18 +36,20 @@ public class InventoryListener implements Listener {
         // 画面1：CAA 設定
         // =======================================================
         if (title.equals("CAA 設定")) {
-            e.setCancelled(true); // 他はすべて禁止
+
+            // GUI部分のみ禁止
+            if (raw < topSize) {
+                e.setCancelled(true);
+            }
 
             // slot4 にアイテムを置く処理
             if (raw == 4) {
                 ItemStack cursor = e.getCursor();
                 if (cursor != null && cursor.getType() != Material.AIR) {
-                    // カーソルのアイテムをセット
                     ItemStack put = cursor.clone();
                     e.getInventory().setItem(4, put);
                     p.setItemOnCursor(null);
 
-                    // 画面2へ
                     guiManager.openSetGUI(p, put);
                 }
             }
@@ -57,9 +60,13 @@ public class InventoryListener implements Listener {
         // 画面2：出品可能設定
         // =======================================================
         if (title.startsWith("CAA 設定 - 出品設定")) {
-            e.setCancelled(true); // 基本禁止
 
-            // slot4 → アイテムを回収して画面1へ
+            // GUI部分のみクリック禁止
+            if (raw < topSize) {
+                e.setCancelled(true);
+            }
+
+            // slot4 → アイテム回収して画面1へ
             if (raw == 4) {
                 ItemStack item = clicked.clone();
                 p.getInventory().addItem(item);
@@ -67,7 +74,7 @@ public class InventoryListener implements Listener {
                 return;
             }
 
-            // slot8 → 出品不可へ移行（赤石画面へ）
+            // slot8 → 出品不可（赤石）へ移動
             if (raw == 8 && clicked.getType() == Material.EMERALD_BLOCK) {
                 ItemStack item = e.getInventory().getItem(4).clone();
                 blockedItemsManager.add(item);
@@ -82,9 +89,13 @@ public class InventoryListener implements Listener {
         // 画面3：出品不可設定
         // =======================================================
         if (title.startsWith("CAA 設定 - 出品不可")) {
-            e.setCancelled(true); // 基本禁止
 
-            // slot4 → アイテム回収して画面1へ
+            // GUI部分のみクリック禁止
+            if (raw < topSize) {
+                e.setCancelled(true);
+            }
+
+            // slot4 → 回収して画面1へ
             if (raw == 4) {
                 ItemStack item = clicked.clone();
                 p.getInventory().addItem(item);
@@ -107,18 +118,29 @@ public class InventoryListener implements Listener {
         // 出品不可リスト（完全操作禁止）
         // =======================================================
         if (title.startsWith("出品不可リスト - ページ")) {
-            e.setCancelled(true); // 完全ロック
+            if (raw < topSize) {
+                e.setCancelled(true);
+            }
         }
     }
 
     // =======================================================
-    // ドラッグすべて禁止
+    // ドラッグ禁止（GUI 部分のみ）
     // =======================================================
     @EventHandler
     public void onInventoryDrag(InventoryDragEvent e) {
         String title = e.getView().getTitle();
+        int topSize = e.getView().getTopInventory().getSize();
+
         if (title.startsWith("CAA 設定") || title.startsWith("出品不可リスト")) {
-            e.setCancelled(true);
+
+            // GUI部分にドラッグがかかる場合だけキャンセル
+            for (int slot : e.getRawSlots()) {
+                if (slot < topSize) {
+                    e.setCancelled(true);
+                    break;
+                }
+            }
         }
     }
 }

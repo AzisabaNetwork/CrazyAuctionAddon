@@ -78,14 +78,41 @@ public class GUIManager {
     // 出品不可リスト（ページ付き）
     // =========================================================
     public void openNoSellList(Player p, int page) {
-        Inventory inv = Bukkit.createInventory(null, 54, "出品不可リスト - ページ " + page);
+        // blockedItems が Set<String>（Material 名）を返す前提で実装
+        // 1ページあたりの表示数（54スロット全体を使う場合）
+        int perPage = 54;
+        java.util.List<String> items = new java.util.ArrayList<>(manager.getBlockedItems()); // Set -> List
 
-        int start = (page - 1) * 45;
-        int end = Math.min(start + 45, manager.getBlockedItems().size());
+        int maxPage = (items.size() + perPage - 1) / perPage;
+        if (maxPage <= 0) maxPage = 1;
+        if (page < 1) page = 1;
+        if (page > maxPage) page = maxPage;
 
+        Inventory inv = Bukkit.createInventory(null, 54, "出品不可リスト - ページ " + page + "/" + maxPage);
+
+        int start = (page - 1) * perPage;
+        int end = Math.min(start + perPage, items.size());
+
+        int slotIndex = 0;
         for (int i = start; i < end; i++) {
-            inv.setItem(i - start, manager.getBlockedItems().get(i));
+            String matName = items.get(i);
+            Material mat = Material.getMaterial(matName);
+            ItemStack is;
+            if (mat != null) {
+                is = new ItemStack(mat);
+            } else {
+                // Material が見つからない場合は名前表示用の紙などに置き換える（安全策）
+                is = new ItemStack(Material.PAPER);
+                org.bukkit.inventory.meta.ItemMeta im = is.getItemMeta();
+                im.setDisplayName(matName);
+                is.setItemMeta(im);
+            }
+            inv.setItem(slotIndex, is);
+            slotIndex++;
         }
+
+        // ページ移動用のボタン（任意）
+        // 例: 左上に戻る/次へを置きたい場合はここで setItem する
 
         p.openInventory(inv);
     }

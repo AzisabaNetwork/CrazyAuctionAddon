@@ -4,7 +4,9 @@ import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class BlockedItemsManager {
@@ -28,7 +30,8 @@ public class BlockedItemsManager {
 
     public void save() {
         FileConfiguration config = plugin.getConfig();
-        config.set("blocked-items", blockedItems.stream().toList());
+        List<String> saveList = new ArrayList<>(blockedItems);
+        config.set("blocked-items", saveList);
         plugin.saveConfig();
     }
 
