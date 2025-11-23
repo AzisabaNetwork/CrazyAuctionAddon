@@ -131,19 +131,36 @@ public class InventoryListener implements Listener {
     }
 
     // ===========================
-    // /ah sell, /auction sell, /auctionhouse sell 対応
+    // /ah sell, /auction sell, /auctionhouse sell 対応 + configブロック対応
     // ===========================
     @EventHandler
     public void onPlayerCommand(PlayerCommandPreprocessEvent e) {
         Player p = e.getPlayer();
         String msg = e.getMessage().toLowerCase();
 
-        if (msg.startsWith("/ah sell") || msg.startsWith("/auction sell") || msg.startsWith("/auctionhouse sell") || msg.startsWith("/auctionhouse:ah sell") || msg.startsWith("/auctionhouse:auction sell") || msg.startsWith("/auctionhouse:auctionhouse sell") ) {
+        if (msg.startsWith("/ah sell") || msg.startsWith("/auction sell") || msg.startsWith("/auctionhouse sell") ||
+                msg.startsWith("/auctionhouse:ah sell") || msg.startsWith("/auctionhouse:auction sell") || msg.startsWith("/auctionhouse:auctionhouse sell")) {
+
             ItemStack main = p.getInventory().getItemInMainHand();
             ItemStack off = p.getInventory().getItemInOffHand();
 
+            boolean blocked = false;
+
+            // GUIリストでのブロック
             if ((main != null && main.getType() != Material.AIR && blockedItemsManager.isBlockedIgnoreAmount(main)) ||
                     (off != null && off.getType() != Material.AIR && blockedItemsManager.isBlockedIgnoreAmount(off))) {
+                blocked = true;
+            }
+
+            // configで指定された名前・ロアでのブロック（手持ちのみ）
+            if (!blocked) {
+                if ((main != null && main.getType() != Material.AIR && blockedItemsManager.isBlockedConfig(main)) ||
+                        (off != null && off.getType() != Material.AIR && blockedItemsManager.isBlockedConfig(off))) {
+                    blocked = true;
+                }
+            }
+
+            if (blocked) {
                 e.setCancelled(true);
                 p.sendMessage("§c手に持っているアイテムは出品できません");
             }

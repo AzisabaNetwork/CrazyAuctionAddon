@@ -18,6 +18,10 @@ public class BlockedItemsManager {
     private FileConfiguration config;
     private final List<ItemStack> blockedItems = new ArrayList<>();
 
+    // config側でブロックする文字列
+    private List<String> blockedNames = new ArrayList<>();
+    private List<String> blockedLores = new ArrayList<>();
+
     public BlockedItemsManager(CrazyAuctionAddon plugin) {
         this.plugin = plugin;
         this.file = new File(plugin.getDataFolder(), "blocked-items.yml");
@@ -33,11 +37,13 @@ public class BlockedItemsManager {
 
         this.config = YamlConfiguration.loadConfiguration(file);
         load();
+        loadBlockedConfig();
     }
 
     public void reloadConfig() {
         this.config = YamlConfiguration.loadConfiguration(file);
         load();
+        loadBlockedConfig();
     }
 
     public void load() {
@@ -64,10 +70,25 @@ public class BlockedItemsManager {
                         if (ench != null) meta.addEnchant(ench, ((Number) entry.getValue()).intValue(), true);
                     }
                 }
+                if (map.containsKey("custommodeldata")) {
+                    Object cmdObj = map.get("custommodeldata");
+                    if (cmdObj instanceof Number) {
+                        meta.setCustomModelData(((Number) cmdObj).intValue());
+                    }
+                }
                 item.setItemMeta(meta);
             }
             blockedItems.add(item);
         }
+    }
+
+    private void loadBlockedConfig() {
+        // config.yml の blocked-names と blocked-lores を読み込む
+        blockedNames.clear();
+        blockedLores.clear();
+        FileConfiguration cfg = plugin.getConfig();
+        if (cfg.isList("blocked-names")) blockedNames = cfg.getStringList("blocked-names");
+        if (cfg.isList("blocked-lores")) blockedLores = cfg.getStringList("blocked-lores");
     }
 
     public void save() {
@@ -83,12 +104,12 @@ public class BlockedItemsManager {
             if (meta != null) {
                 if (meta.hasDisplayName()) map.put("name", meta.getDisplayName());
                 if (meta.hasLore()) map.put("lore", meta.getLore());
-
                 if (meta.hasEnchants()) {
                     Map<String, Integer> enchants = new HashMap<>();
                     meta.getEnchants().forEach((ench, level) -> enchants.put(ench.getName(), level));
                     map.put("enchants", enchants);
                 }
+                if (meta.hasCustomModelData()) map.put("custommodeldata", meta.getCustomModelData());
             }
             items.add(map);
         }
@@ -101,7 +122,7 @@ public class BlockedItemsManager {
     }
 
     public void add(ItemStack item) {
-        blockedItems.removeIf(bi -> isSameItemIgnoreAmount(bi, item)); // 一度消してから追加
+        blockedItems.removeIf(bi -> isSameItemIgnoreAmount(bi, item));
         blockedItems.add(item.clone());
         save();
     }
@@ -118,10 +139,28 @@ public class BlockedItemsManager {
         return false;
     }
 
-    // AH sell 判定用（スタック数無視）
     public boolean isBlockedIgnoreAmount(ItemStack item) {
         for (ItemStack bi : blockedItems) {
             if (isSameItemIgnoreAmount(bi, item)) return true;
+        }
+        return false;
+    }
+
+    public boolean isBlockedConfig(ItemStack item) {
+        if (item == null) return false;
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null) {
+            String name = meta.hasDisplayName() ? meta.getDisplayName() : "";
+            List<String> lore = meta.hasLore() ? meta.getLore() : Collections.emptyList();
+
+            for (String blockName : blockedNames) {
+                if (name.contains(blockName)) return true;
+            }
+            for (String blockLore : blockedLores) {
+                for (String l : lore) {
+                    if (l.contains(blockLore)) return true;
+                }
+            }
         }
         return false;
     }
@@ -144,12 +183,12 @@ public class BlockedItemsManager {
             if (!Objects.equals(am.getDisplayName(), bm.getDisplayName())) return false;
             if (!Objects.equals(am.getLore(), bm.getLore())) return false;
             if (!am.getEnchants().equals(bm.getEnchants())) return false;
+            if (!Objects.equals(am.getCustomModelData(), bm.getCustomModelData())) return false;
         }
 
         return true;
     }
 
-    // スタック数を無視して比較
     private boolean isSameItemIgnoreAmount(ItemStack a, ItemStack b) {
         if (a == null || b == null) return false;
         if (a.getType() != b.getType()) return false;
@@ -163,6 +202,7 @@ public class BlockedItemsManager {
             if (!Objects.equals(am.getDisplayName(), bm.getDisplayName())) return false;
             if (!Objects.equals(am.getLore(), bm.getLore())) return false;
             if (!am.getEnchants().equals(bm.getEnchants())) return false;
+            if (!Objects.equals(am.getCustomModelData(), bm.getCustomModelData())) return false;
         }
 
         return true;
