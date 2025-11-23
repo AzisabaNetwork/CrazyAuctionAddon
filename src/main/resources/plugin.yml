@@ -7,7 +7,7 @@ author: pino223
 commands:
   caa:
     description: CrazyAuctionAddon main command
-    usage: /caa <set|noselllist>
+    usage: /caa <set|noselllist|reload>
     permission: crazyauctionaddon.use
     permission-message: 権限がありません
 

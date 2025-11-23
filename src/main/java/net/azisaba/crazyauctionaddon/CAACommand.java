@@ -27,7 +27,7 @@ public class CAACommand implements CommandExecutor {
 
         Player p = (Player) sender;
 
-        // 権限チェック（OP ではなく permission を使用）
+        // 権限チェック
         if (!p.hasPermission("crazyauctionaddon.use")) {
             p.sendMessage("§c権限がありません");
             return true;
@@ -36,6 +36,7 @@ public class CAACommand implements CommandExecutor {
         if (args.length == 0) {
             p.sendMessage("§e/caa set §7- 出品設定GUIを開く");
             p.sendMessage("§e/caa noselllist [ページ] §7- 出品不可リストを見る");
+            p.sendMessage("§e/caa reload §7- プラグイン設定をリロード");
             return true;
         }
 
@@ -56,6 +57,15 @@ public class CAACommand implements CommandExecutor {
                     }
                 }
                 guiManager.openNoSellList(p, page);
+                break;
+
+            case "reload":
+                if (!p.hasPermission("crazyauctionaddon.reload")) {
+                    p.sendMessage("§c権限がありません");
+                    return true;
+                }
+                plugin.reloadAll(); // config と blocked-items をリロード
+                p.sendMessage("§aCrazyAuctionAddon 設定をリロードしました");
                 break;
 
             default:

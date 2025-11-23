@@ -10,7 +10,7 @@ import java.util.List;
 
 public class CAATabCompleter implements TabCompleter {
 
-    private final List<String> subCommands = Arrays.asList("set", "noselllist");
+    private final List<String> subCommands = Arrays.asList("set", "noselllist","reload");
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
