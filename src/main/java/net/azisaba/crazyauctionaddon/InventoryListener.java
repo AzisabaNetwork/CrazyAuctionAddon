@@ -138,7 +138,7 @@ public class InventoryListener implements Listener {
         Player p = e.getPlayer();
         String msg = e.getMessage().toLowerCase();
 
-        if (msg.startsWith("/ah sell") || msg.startsWith("/auction sell") || msg.startsWith("/auctionhouse sell")) {
+        if (msg.startsWith("/ah sell") || msg.startsWith("/auction sell") || msg.startsWith("/auctionhouse sell") || msg.startsWith("/auctionhouse:ah sell") || msg.startsWith("/auctionhouse:auction sell") || msg.startsWith("/auctionhouse:auctionhouse sell") ) {
             ItemStack main = p.getInventory().getItemInMainHand();
             ItemStack off = p.getInventory().getItemInOffHand();
 

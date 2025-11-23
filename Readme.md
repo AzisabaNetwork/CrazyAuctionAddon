@@ -1,5 +1,5 @@
 # CrazyAuctionAddon
-**Version:** 1.0.6<br>
+**Version:** 1.0.7<br>
 **Native Minecraft Version:** 1.16.5<br>
 **Author:** pino223<br>
 **LICENSE:** [GPL-3.0](LICENSE)<br>
