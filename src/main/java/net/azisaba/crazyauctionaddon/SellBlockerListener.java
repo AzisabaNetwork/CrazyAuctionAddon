@@ -23,9 +23,14 @@ public class SellBlockerListener implements Listener {
         Player p = e.getPlayer();
         ItemStack item = p.getInventory().getItemInMainHand();
 
-        if (manager.isBlocked(item)) {
-            e.setCancelled(true);
-            p.sendMessage("§cこのアイテムは出品できません！");
+        // if (manager.isBlocked(item)) {
+           // e.setCancelled(true);
+           // p.sendMessage("§cこのアイテムは出品できません！");
+        //}
+        if (blockedItemsManager.isBlocked(item)) {
+            event.setCancelled(true);
+            player.sendMessage("§cこのアイテムは出品できません！");
         }
+
     }
 }

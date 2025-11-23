@@ -18,24 +18,24 @@ public class CAACommand implements CommandExecutor {
     }
 
     @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 
-        // プレイヤーチェック
         if (!(sender instanceof Player)) {
-            sender.sendMessage("§cこのコマンドはゲーム内から実行してください");
+            sender.sendMessage("ゲーム内で実行してください");
             return true;
         }
+
         Player p = (Player) sender;
 
-        // 権限チェック（OP または permission 所持）
-        if (!p.hasPermission("crazyauctionaddon.use") && !p.isOp()) {
+        // 権限チェック（OP ではなく permission を使用）
+        if (!p.hasPermission("crazyauctionaddon.use")) {
             p.sendMessage("§c権限がありません");
             return true;
         }
 
-        // 引数なし → ヘルプ
         if (args.length == 0) {
-            sendHelp(p);
+            p.sendMessage("§e/caa set §7- 出品設定GUIを開く");
+            p.sendMessage("§e/caa noselllist [ページ] §7- 出品不可リストを見る");
             return true;
         }
 
@@ -43,32 +43,26 @@ public class CAACommand implements CommandExecutor {
 
             case "set":
                 guiManager.openConfigGUI(p);
-                return true;
+                break;
 
             case "noselllist":
                 int page = 1;
-                if (args.length > 1) {
+                if (args.length >= 2) {
                     try {
                         page = Integer.parseInt(args[1]);
-                        if (page < 1) page = 1;
-                    } catch (NumberFormatException ex) {
+                    } catch (NumberFormatException e) {
                         p.sendMessage("§cページ番号が不正です");
                         return true;
                     }
                 }
                 guiManager.openNoSellList(p, page);
-                return true;
+                break;
 
             default:
                 p.sendMessage("§c不明なサブコマンドです");
-                sendHelp(p);
-                return true;
+                break;
         }
-    }
 
-    private void sendHelp(Player p) {
-        p.sendMessage("§e==== CrazyAuctionAddon ====");
-        p.sendMessage("§e/caa set §7- 出品設定GUIを開く");
-        p.sendMessage("§e/caa noselllist [ページ] §7- 出品不可一覧を開く");
+        return true;
     }
 }
