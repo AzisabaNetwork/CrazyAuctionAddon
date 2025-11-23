@@ -67,7 +67,6 @@ public class InventoryListener implements Listener {
             if (raw < topSize) e.setCancelled(true);
 
             if (raw == 4) {
-                // 画面切り替えだけならインベントリには返さない
                 guiManager.openConfigGUI(p);
                 p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
                 return;
@@ -80,7 +79,6 @@ public class InventoryListener implements Listener {
                 p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
                 return;
             }
-            return;
         }
 
         // =======================================================
@@ -102,7 +100,6 @@ public class InventoryListener implements Listener {
                 p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
                 return;
             }
-            return;
         }
 
         // =======================================================
@@ -144,6 +141,9 @@ public class InventoryListener implements Listener {
         }
     }
 
+    // =======================================================
+    // GUIを閉じたときのみアイテム返却
+    // =======================================================
     @EventHandler
     public void onInventoryClose(InventoryCloseEvent e) {
         if (!(e.getPlayer() instanceof Player)) return;

@@ -90,5 +90,4 @@ public class GUIManager {
         p.openInventory(inv);
     }
 
-
 }
